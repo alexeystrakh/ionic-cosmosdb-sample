@@ -2,6 +2,8 @@ import { Component } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import * as CryptoJS from 'crypto-js';
 import * as Model from '../../models/todoItem';
+import * as Cosmos from '@azure/cosmos';
+import { generateSignature } from '@azure/cosmos-sign'
 
 @Component({
   selector: 'app-tab1',
@@ -10,22 +12,36 @@ import * as Model from '../../models/todoItem';
 })
 export class Tab1Page {
 
+  // Config
+  private readonly cosmosHost = '<your_cosmosdb_instance>.documents.azure.com:443>';
+  private readonly primaryKey = '<your_master_key>';
+  private readonly database = 'Tasks';
+  private readonly collection = 'Items';
+
+  // State
   public items: Model.Todo[];
 
   constructor(private http: HttpClient) {
-    this.listCollections().catch(err => console.error(err));
+    this.listCollectionsUsingRESTApi().catch(err => console.error(err));
+    // this.listCollectionsUsingCosmosSDK().catch(err => console.error(err));
   }
 
-  async listCollections() {
-    const cosmosHost = '<your_cosmosdb_instance>.documents.azure.com:443';
-    const primaryKey = '<your_master_key>';
-    const database = 'Tasks';
-    const collection = 'Items';
+  async listCollectionsUsingCosmosSDK() {
+    const CosmosClient = Cosmos.CosmosClient;
+    const client = new CosmosClient({ endpoint: this.cosmosHost, auth: { masterKey: this.primaryKey } });
+    console.warn(`client: ${client}`);
+
+    // tab1.page.ts:25 TypeError: os.platform is not a function
+    const db = await client.database(this.database);
+    console.warn(`database: ${db}`);
+  }
+
+  async listCollectionsUsingRESTApi() {
     const resourceAction = 'get';
     const resourceType = 'docs';
-    const resourceId = `dbs/${database}/colls/${collection}`;
-    const requestUrl = `https://${cosmosHost}/${resourceId}/${resourceType}`;
-    const headers = this.generateHttpHeaders(primaryKey, resourceAction, resourceType, resourceId);
+    const resourceId = `dbs/${this.database}/colls/${this.collection}`;
+    const requestUrl = `https://${this.cosmosHost}/${resourceId}/${resourceType}`;
+    const headers = this.generateHttpHeaders(this.primaryKey, resourceAction, resourceType, resourceId);
     const response = await this.http.get<Model.TodoCollection>(requestUrl, { headers }).toPromise();
     console.log(response);
 
@@ -34,6 +50,22 @@ export class Tab1Page {
   }
 
   generateHttpHeaders(masterKey, verb, resType, resourceId): HttpHeaders {
+    const auth = this.generateSignatureUsingSdk(masterKey, verb, resType, resourceId);
+    // const auth = this.generateSignatureUsingCustomCode(masterKey, verb, resType, resourceId);
+
+    const headers = new HttpHeaders({
+      Authorization: auth,
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, GET, OPTIONS, PUT, DELETE',
+      'x-ms-version': '2016-07-11',
+      'x-ms-date': new Date().toUTCString()
+    });
+
+    return headers;
+  }
+
+  generateSignatureUsingCustomCode(masterKey, verb, resType, resourceId) {
     const today = new Date();
     const utcString = today.toUTCString();
     const date = utcString.toLowerCase();
@@ -48,15 +80,11 @@ export class Tab1Page {
     const MasterToken = 'master';
     const TokenVersion = '1.0';
     const auth = encodeURIComponent(`type=${MasterToken}&ver=${TokenVersion}&sig=${base64Bits}`);
-    const headers = new HttpHeaders({
-      Authorization: auth,
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, GET, OPTIONS, PUT, DELETE',
-      'x-ms-version': '2016-07-11',
-      'x-ms-date': utcString
-    });
+    return auth;
+  }
 
-    return headers;
+  generateSignatureUsingSdk(masterKey, verb, resType, resourceId) {
+    const auth = generateSignature(masterKey, verb, resType, resourceId);
+    return auth;
   }
 }
