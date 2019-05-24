@@ -20,6 +20,7 @@
     "@angular/platform-browser": "^7.2.2",
     "@angular/platform-browser-dynamic": "^7.2.2",
     "@angular/router": "^7.2.2",
+    "@azure/cosmos": "^3.0.0-16",
     "@ionic-native/core": "^5.0.0",
     "@ionic-native/splash-screen": "^5.0.0",
     "@ionic-native/status-bar": "^5.0.0",
@@ -34,6 +35,7 @@
     "cordova-plugin-whitelist": "^1.3.3",
     "core-js": "^2.5.4",
     "crypto-js": "^3.1.9-1",
+    "os": "^0.1.1",
     "rxjs": "~6.5.1",
     "tslib": "^1.9.0",
     "zone.js": "~0.8.29"
