@@ -22,8 +22,8 @@ export class Tab1Page {
   public items: Model.Todo[];
 
   constructor(private http: HttpClient) {
-    this.listCollectionsUsingRESTApi().catch(err => console.error(err));
-    // this.listCollectionsUsingCosmosSDK().catch(err => console.error(err));
+    // this.listCollectionsUsingRESTApi().catch(err => console.error(err));
+    this.listCollectionsUsingCosmosSDK().catch(err => console.error(err));
   }
 
   async listCollectionsUsingCosmosSDK() {
