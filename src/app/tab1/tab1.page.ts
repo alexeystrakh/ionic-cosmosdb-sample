@@ -3,7 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import * as CryptoJS from 'crypto-js';
 import * as Model from '../../models/todoItem';
 import * as Cosmos from '@azure/cosmos';
-import { generateSignature } from '@azure/cosmos-sign'
+import { generateSignature } from '@azure/cosmos-sign';
 
 @Component({
   selector: 'app-tab1',
