@@ -28,12 +28,20 @@ export class Tab1Page {
 
   async listCollectionsUsingCosmosSDK() {
     const CosmosClient = Cosmos.CosmosClient;
-    const client = new CosmosClient({ endpoint: this.cosmosHost, auth: { masterKey: this.primaryKey } });
-    console.warn(`client: ${client}`);
-
-    // tab1.page.ts:25 TypeError: os.platform is not a function
+    const client = new CosmosClient({
+      endpoint: `https://${this.cosmosHost}`,
+      auth: { masterKey: this.primaryKey },
+      defaultHeaders: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, GET, OPTIONS, PUT, DELETE',
+      }
+    });
     const db = await client.database(this.database);
-    console.warn(`database: ${db}`);
+    const container = db.container(this.collection);
+    const allItems = await container.items.readAll<Model.Todo>().fetchAll();
+    console.warn(allItems);
+
+    // this.items = allItems;
   }
 
   async listCollectionsUsingRESTApi() {
