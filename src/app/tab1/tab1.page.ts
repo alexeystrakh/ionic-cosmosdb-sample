@@ -27,13 +27,11 @@ export class Tab1Page {
   }
 
   async listCollectionsUsingCosmosSDK() {
-    const CosmosClient = Cosmos.CosmosClient;
-    const client = new CosmosClient({
+    const client = new Cosmos.CosmosClient({
       endpoint: `https://${this.cosmosHost}`,
       auth: { masterKey: this.primaryKey },
-      defaultHeaders: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, GET, OPTIONS, PUT, DELETE',
+      connectionPolicy: {
+        enableEndpointDiscovery: false
       }
     });
     const db = await client.database(this.database);
@@ -64,8 +62,6 @@ export class Tab1Page {
     const headers = new HttpHeaders({
       Authorization: auth,
       'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, GET, OPTIONS, PUT, DELETE',
       'x-ms-version': '2016-07-11',
       'x-ms-date': new Date().toUTCString()
     });
