@@ -30,16 +30,18 @@ export class Tab1Page {
     const client = new Cosmos.CosmosClient({
       endpoint: `https://${this.cosmosHost}`,
       auth: { masterKey: this.primaryKey },
+      consistencyLevel: 'Eventual',
       connectionPolicy: {
         enableEndpointDiscovery: false
       }
     });
     const db = await client.database(this.database);
     const container = db.container(this.collection);
-    const allItems = await container.items.readAll<Model.Todo>().fetchAll();
-    console.warn(allItems);
+    const response = await container.items.readAll<Model.Todo>().fetchAll();
+    console.warn(response);
 
-    // this.items = allItems;
+    this.items = response.resources;
+    console.log('items received!');
   }
 
   async listCollectionsUsingRESTApi() {
