@@ -22,18 +22,26 @@ export class Tab1Page {
   public items: Model.Todo[];
 
   constructor(private http: HttpClient) {
-    this.listCollectionsUsingRESTApi().catch(err => console.error(err));
-    // this.listCollectionsUsingCosmosSDK().catch(err => console.error(err));
+    // this.listCollectionsUsingRESTApi().catch(err => console.error(err));
+    this.listCollectionsUsingCosmosSDK().catch(err => console.error(err));
   }
 
   async listCollectionsUsingCosmosSDK() {
-    const CosmosClient = Cosmos.CosmosClient;
-    const client = new CosmosClient({ endpoint: this.cosmosHost, auth: { masterKey: this.primaryKey } });
-    console.warn(`client: ${client}`);
-
-    // tab1.page.ts:25 TypeError: os.platform is not a function
+    const client = new Cosmos.CosmosClient({
+      endpoint: `https://${this.cosmosHost}`,
+      auth: { masterKey: this.primaryKey },
+      consistencyLevel: 'Eventual',
+      connectionPolicy: {
+        enableEndpointDiscovery: false
+      }
+    });
     const db = await client.database(this.database);
-    console.warn(`database: ${db}`);
+    const container = db.container(this.collection);
+    const response = await container.items.readAll<Model.Todo>().fetchAll();
+    console.warn(response);
+
+    this.items = response.resources;
+    console.log('items received!');
   }
 
   async listCollectionsUsingRESTApi() {
@@ -56,8 +64,6 @@ export class Tab1Page {
     const headers = new HttpHeaders({
       Authorization: auth,
       'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, GET, OPTIONS, PUT, DELETE',
       'x-ms-version': '2016-07-11',
       'x-ms-date': new Date().toUTCString()
     });
