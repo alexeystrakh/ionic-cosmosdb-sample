@@ -52,6 +52,12 @@
  *
  */
 
+import { Buffer } from 'buffer';
+
+const anyWindow = (window as any);
+anyWindow.global = window;
+anyWindow.global.Buffer = anyWindow.global.Buffer || Buffer;
+
 import './zone-flags.ts';
 
 /***************************************************************************************************
